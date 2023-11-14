@@ -7,17 +7,19 @@ import cookieParser from "cookie-parser";
 import * as mongoose from "mongoose";
 import checkParameterMiddleware from "./middlewares/check-parametr.middleware";
 import {UserController} from "./controllers/user.controller";
+import * as dotenv from 'dotenv';
 const app = express();
 const corsOptions:CorsOptions = {
     origin: "*",
     optionsSuccessStatus: 200,
     credentials: true,
 }
+dotenv.config();
 app.use(cookieParser());
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-mongoose.connect("mongodb+srv://vercel-admin-user-6553bc2bf1a3be4e064d538a:9cVbdTwEXjsAWSMm@cluster0.lakcs3z.mongodb.net/myFirstDatabase?retryWrites=true&w=majority");
+mongoose.connect(process.env.MONGODB_URI);
 app.post("/login",AuthController.registration);
 app.get("/jobs",authMiddleware(),JobsController.getJobs);
 app.post("/jobs",authMiddleware(),JobsController.postJobs);
