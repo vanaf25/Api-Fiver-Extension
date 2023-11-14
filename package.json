@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "type": "module",
   "scripts": {
     "deploy": "export MODE=production && rm -r ./dist && ./node_modules/typescript/bin/tsc && git add dist && git commit -m \"Deploy\" && git push",
     "dev": "set MODE=development && npx nodemon src/index.ts",
