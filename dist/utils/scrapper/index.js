@@ -1,16 +1,19 @@
-import { parse } from "node-html-parser";
-import { xhr } from "../xhr";
-import { AUTHOR_GIG_KEY, FIVERR_HOST, GIG_DATA_KEY, GIG_SCRIPT_ID_SELECTOR, HTML_CONTENT_TYPE } from "./consts";
-import { randomUserAgent } from "./helpers";
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.scrapper = void 0;
+const node_html_parser_1 = require("node-html-parser");
+const xhr_1 = require("../xhr");
+const consts_1 = require("./consts");
+const helpers_1 = require("./helpers");
 const defaultOptions = {
     headers: {
-        'User-Agent': randomUserAgent()
+        'User-Agent': (0, helpers_1.randomUserAgent)()
     }
 };
 class Scrapper {
     async getGigData(url) {
         const response = await this.apiRequest(url);
-        const gigData = this.getGigDataFromHtml(parse(response.data));
+        const gigData = this.getGigDataFromHtml((0, node_html_parser_1.parse)(response.data));
         if (!gigData) {
             return null;
         }
@@ -18,18 +21,18 @@ class Scrapper {
     }
     async apiRequest(url) {
         const { host } = new URL(url);
-        if (host !== FIVERR_HOST) {
+        if (host !== consts_1.FIVERR_HOST) {
             /*
                         return ApiError.defaultError(`\`Url must be from ${FIVERR_HOST} host\``)
             */
         }
-        const response = await xhr.get(url, defaultOptions);
+        const response = await xhr_1.xhr.get(url, defaultOptions);
         // handle redirect
         if (response.headers.location && response.statusCode >= 300 && response.statusCode <= 399) {
             return this.apiRequest(response.headers.location);
         }
-        if (response.headers.contentType !== HTML_CONTENT_TYPE) {
-            throw new Error(`Content-type must be ${HTML_CONTENT_TYPE}`);
+        if (response.headers.contentType !== consts_1.HTML_CONTENT_TYPE) {
+            throw new Error(`Content-type must be ${consts_1.HTML_CONTENT_TYPE}`);
         }
         if (response.isError) {
             throw new Error(`Xhr: ${response.errorMessage}`);
@@ -40,7 +43,7 @@ class Scrapper {
         return response;
     }
     getGigDataFromHtml(html) {
-        const gigJson = html.querySelector(GIG_SCRIPT_ID_SELECTOR);
+        const gigJson = html.querySelector(consts_1.GIG_SCRIPT_ID_SELECTOR);
         if (!gigJson) {
             return null;
         }
@@ -48,9 +51,9 @@ class Scrapper {
     }
     getClearGigData(gigData) {
         console.log(gigData);
-        const { gigId, categorySlug, subCategorySlug, nestedSubCategorySlug } = gigData[GIG_DATA_KEY] || {};
-        const { username } = gigData[AUTHOR_GIG_KEY] || {};
-        console.log(gigData[GIG_DATA_KEY]);
+        const { gigId, categorySlug, subCategorySlug, nestedSubCategorySlug } = gigData[consts_1.GIG_DATA_KEY] || {};
+        const { username } = gigData[consts_1.AUTHOR_GIG_KEY] || {};
+        console.log(gigData[consts_1.GIG_DATA_KEY]);
         let gigCategoryUrl = `https://www.fiverr.com/categories/${categorySlug}/`;
         if (subCategorySlug) {
             gigCategoryUrl += `${subCategorySlug}/`;
@@ -68,4 +71,4 @@ class Scrapper {
         };
     }
 }
-export const scrapper = new Scrapper();
+exports.scrapper = new Scrapper();

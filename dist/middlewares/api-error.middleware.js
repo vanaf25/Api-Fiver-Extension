@@ -1,4 +1,6 @@
-export default class ApiError extends Error {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+class ApiError extends Error {
     statusCode;
     isOperational;
     constructor(message, statusCode = 400) {
@@ -24,3 +26,4 @@ export default class ApiError extends Error {
         return new ApiError(message, 401);
     }
 }
+exports.default = ApiError;

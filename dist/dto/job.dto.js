@@ -1,3 +1,5 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 class JobDto {
     id;
     favorite;
@@ -9,4 +11,3 @@ class JobDto {
     constructor() {
     }
 }
-export {};

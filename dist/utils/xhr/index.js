@@ -1,5 +1,11 @@
-import https from "https";
-export class XhrResponse {
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.xhr = exports.XhrResponse = void 0;
+const https_1 = __importDefault(require("https"));
+class XhrResponse {
     data = null;
     headers = {};
     statusCode = 0;
@@ -43,6 +49,7 @@ export class XhrResponse {
         this.isError = true;
     }
 }
+exports.XhrResponse = XhrResponse;
 var Methods;
 (function (Methods) {
     Methods["GET"] = "GET";
@@ -66,7 +73,7 @@ class Xhr {
         return new Promise((resolve, reject) => {
             const response = new XhrResponse();
             let buffData = "";
-            const req = https.request(requestOptions, (res) => {
+            const req = https_1.default.request(requestOptions, (res) => {
                 response.setHeaders(res.headers);
                 response.setStatusCode(res.statusCode);
                 response.setResHttp(res);
@@ -90,4 +97,4 @@ class Xhr {
         });
     }
 }
-export const xhr = new Xhr();
+exports.xhr = new Xhr();
