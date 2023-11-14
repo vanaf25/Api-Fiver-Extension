@@ -9,7 +9,8 @@
     "build": "npx prisma generate && ./node_modules/typescript/bin/tsc ",
     "db:deploy": "npx prisma generate && npx prisma db push",
     "db:generate": "npx prisma generate",
-    "db:sync": "npx prisma push"
+    "db:sync": "npx prisma push",
+    "vercel-build": "echo hello"
   },
   "author": "",
   "license": "ISC",
