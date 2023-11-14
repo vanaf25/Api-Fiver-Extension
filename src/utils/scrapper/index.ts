@@ -69,10 +69,10 @@ class Scrapper {
         console.log(gigData[GIG_DATA_KEY]);
         let gigCategoryUrl=`https://www.fiverr.com/categories/${categorySlug}/`
         if (subCategorySlug){
-            gigCategoryUrl+=`${subCategorySlug}/`
+            gigCategoryUrl+=`${subCategorySlug}`
         }
         if (nestedSubCategorySlug){
-            gigCategoryUrl+=`${nestedSubCategorySlug}`
+            gigCategoryUrl+=`/${nestedSubCategorySlug}`
         }
         return {
             gigId,
