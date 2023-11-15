@@ -62,6 +62,7 @@ app.post("/exchanges/:id", (0, check_parametr_middleware_1.default)(), (0, auth_
 app.get("/exchanges", (0, auth_middleware_1.default)(), jobs_controller_1.JobsController.getExchanges);
 app.post("/applyExchanges/:id", (0, check_parametr_middleware_1.default)(), (0, auth_middleware_1.default)(), jobs_controller_1.JobsController.applyForExchange);
 app.get('/myJobs', (0, auth_middleware_1.default)(), user_controller_1.UserController.getMyJobs);
+app.get("/myHistory", (0, auth_middleware_1.default)(), user_controller_1.UserController.getMyHistory);
 app.listen(5000, () => {
     console.log("Hello server start!");
 });
