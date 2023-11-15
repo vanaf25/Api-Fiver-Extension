@@ -26,9 +26,7 @@ class UserService {
                 } }).exec(),
             jobSchema_1.HistoryModel.countDocuments({ user: userId }),
         ]);
-        const u = histories.map(history => ({ ...history.toObject(),
-            completedAt: new Date(history.completedAt).toLocaleString() }));
-        return { data: u, count: historyCount };
+        return { data: histories, count: historyCount };
     }
     static async getMyHistory(userId, currentPage, pageSize = 10) {
         if (currentPage < 1)
@@ -36,7 +34,7 @@ class UserService {
         const PAGE_SIZE = pageSize;
         const skip = (currentPage - 1) * PAGE_SIZE;
         console.log('u:', userId);
-        const [histories, historyCount] = await Promise.all([
+        let [histories, historyCount] = await Promise.all([
             jobSchema_1.HistoryModel.find({})
                 .populate({
                 path: "job",
@@ -53,10 +51,8 @@ class UserService {
             //@ts-ignore
             console.log(h?.job?.author);
         });
-        let u = histories.map(history => ({ ...history.toObject(),
-            completedAt: new Date(history.completedAt).toLocaleString() }));
-        u = [...u].filter(history => history.job);
-        return { data: u, count: u.length };
+        histories = [...histories].filter(history => history.job);
+        return { data: histories, count: histories.length };
     }
     static async getMyJobs(userId, page) {
         const PAGE_SIZE = 5;
