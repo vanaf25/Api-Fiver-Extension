@@ -14,4 +14,10 @@ export class UserController{
       const {page=1}=req.query
         res.json(await UserService.getMyJobs(userId,+page));
   }
+  static async getMyHistory(req:Request,res:Response){
+      const userId=req.body?.identity?.id;
+      const {page=1,take=10}=req.query;
+      const result=await UserService.getMyHistory(userId,page,+take)
+      res.json(result) ;
+  }
 }

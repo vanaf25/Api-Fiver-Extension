@@ -34,6 +34,7 @@ app.post("/exchanges/:id",checkParameterMiddleware(),authMiddleware(),JobsContro
 app.get("/exchanges",authMiddleware(),JobsController.getExchanges);
 app.post("/applyExchanges/:id",checkParameterMiddleware(),authMiddleware(),JobsController.applyForExchange);
 app.get('/myJobs',authMiddleware(),UserController.getMyJobs);
+app.get("/myHistory",authMiddleware(),UserController.getMyHistory);
 app.listen(5000, () => {
     console.log("Hello server start!")
 });

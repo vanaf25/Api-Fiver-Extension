@@ -21,6 +21,33 @@ export class UserService {
               completedAt:new Date(history.completedAt).toLocaleString()}))
          return {data:u,count:historyCount}
         }
+        static async getMyHistory(userId,currentPage,pageSize=10){
+            if (currentPage<1)currentPage=1
+            const PAGE_SIZE=pageSize;
+            const skip = (currentPage - 1) * PAGE_SIZE;
+            console.log('u:',userId);
+            const [histories, historyCount] = await Promise.all([
+                HistoryModel.find({
+                })
+                    .populate({
+                        path:"job",
+                        match:{author:userId},
+                        populate:{
+                            path: 'author',
+                            model:"User",
+                        }}).exec(),
+                HistoryModel.countDocuments()
+            ]);
+            console.log('h:',histories);
+            histories.forEach(h=>{
+                //@ts-ignore
+                console.log(h?.job?.author)
+            });
+            let  u:any= histories.map(history=>({...history.toObject(),
+                completedAt:new Date(history.completedAt).toLocaleString()}));
+            u=[...u].filter(history=>history.job);
+            return {data:u,count:u.length}
+        }
         static async getMyJobs(userId:number,page:number){
         const PAGE_SIZE=5;
             const skip = (page - 1) * PAGE_SIZE;
