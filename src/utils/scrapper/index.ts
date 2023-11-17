@@ -31,9 +31,7 @@ class Scrapper {
     private async apiRequest(url): Promise<XhrResponse> {
         const { host } = new URL(url)
         if (host !== FIVERR_HOST) {
-/*
-            return ApiError.defaultError(`\`Url must be from ${FIVERR_HOST} host\``)
-*/
+            throw ApiError.defaultError(`\`Url must be from ${FIVERR_HOST} host\``)
         }
 
         const response = await xhr.get(url, defaultOptions)

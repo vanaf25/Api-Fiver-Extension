@@ -1,5 +1,6 @@
 import {Request, Response} from "express";
 import {JobsService} from "../services/jobsService";
+import ApiError from "../middlewares/api-error.middleware";
 
 export class JobsController{
 static async getJobs(req:Request,res:Response<any,any>){
@@ -45,11 +46,24 @@ static async getCurrentJob(req,res){
         const result=await JobsService.updateCurrentJob(jobId,userId,body);
       return   res.json(result)
     }
-    static async exchangeJobs(req:Request,res:Response){
+    static async exchangeJobs(req:Request,res:Response,next){
+    try {
         const userId=req.body?.identity?.id;
         const jobId=req.params.id
-        const result=await JobsService.exchangeJobs(jobId,userId)
+        const result=await JobsService.exchangeJobs(jobId,userId);
         return  res.json(result);
+    }
+    catch (error) {
+            // Перевірка, чи об'єкт помилки є екземпляром ApiError
+            if (error instanceof ApiError) {
+                // Повертаємо відповідь клієнту з використанням властивостей з вашого класу ApiError
+                console.log('err:',error.statusCode);
+                res.status(error.statusCode).json({ error: { message: error.message } });
+            } else {
+                // Інші неочікувані помилки обробляються власним способом
+                next(error);
+            }
+        }
     }
     static async applyForExchange(req:Request,res:Response){
         const userId=req.body?.identity?.id;

@@ -185,7 +185,7 @@ body.url
     }
     static async exchangeJobs(jobId,userId) {
         const job = await JobModel.findOne({_id: jobId});
-        if (!job) throw ApiError.NotFound("The job was not founded");
+        if (!job) throw  ApiError.NotFound("The job was not founded");
         let exchanges=await ExchangeModel.find({
             secondUser:userId,
         });
@@ -241,9 +241,9 @@ body.url
         const exchange=await ExchangeModel.findOne({_id:exchangeId}).populate("user")
             .populate("firstJob").populate("secondJob").populate("secondUser").exec()
         const job = await JobModel.findOne({_id: jobId}).populate("author").exec();
-        if (!job) return  ApiError.NotFound("The job was not founded");
+        if (!job) throw  ApiError.NotFound("The job was not founded");
         if (!exchange) throw ApiError.NotFound("The exchange was not found");
-        if (exchange.secondJob) return  ApiError.defaultError("You can't apply for this exchange");
+        if (exchange.secondJob) throw  ApiError.defaultError("You can't apply for this exchange");
        const currentJob= await this.applyForJob(
             jobId,
             userId,true);
