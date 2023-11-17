@@ -8,11 +8,25 @@ static async getJobs(req:Request,res:Response<any,any>){
     const jobs=await JobsService.getJobs(+page);
  return    res.json(jobs);
 }
-static async postJobs(req:Request<any,any,any>,res:Response){
-    const body=req.body;
-    const userId=req.body.identity.id;
-    const result= await JobsService.createJob(body,userId);
-  return   res.json({result});
+static async postJobs(req:Request<any,any,any>,res:Response,next){
+    try {
+        const body=req.body;
+        const userId=req.body.identity.id;
+        const result= await JobsService.createJob(body,userId);
+        return   res.json({result});
+    }
+    catch (error) {
+        // Перевірка, чи об'єкт помилки є екземпляром ApiError
+        if (error instanceof ApiError) {
+            // Повертаємо відповідь клієнту з використанням властивостей з вашого класу ApiError
+            console.log('err:',error.statusCode);
+            res.status(error.statusCode).json({ error: { message: error.message } });
+        } else {
+            // Інші неочікувані помилки обробляються власним способом
+            next(error);
+        }
+    }
+
 }
 static async applyForJob(req:Request<any,any,any>,res:Response){
     const id=req?.params?.id

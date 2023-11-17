@@ -14,7 +14,11 @@ export default function authMiddleware({optional}: Params = defaultParams) {
                 if (optional) {
                     return next();
                 }
-                return next(ApiError.UnauthorizedError("TOKEN_EMPTY"));
+                return    res.status(401).send({
+                    error: {
+                        message: "TOKEN_EMPTY"
+                    }
+                });
             }
             let tokenData : any = TokenService.decodeAccessToken(token);
             await TokenService.compareTokenWithDb(tokenData.payload, token,"access_token");

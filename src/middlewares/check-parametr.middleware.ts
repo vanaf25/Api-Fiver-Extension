@@ -12,7 +12,13 @@ export default function checkParameterMiddleware({optional}: Params = defaultPar
            if (mongoose.Types.ObjectId.isValid(req.params?.id)){
                return next();
            }
-            return next(ApiError.UnauthorizedError("Id is not valid"));
+           else {
+               res.status(401).send({
+                   error: {
+                       message: "Id isn't correct"
+                   }
+               })
+           }
         } catch (e) {
             return next(e);
         }

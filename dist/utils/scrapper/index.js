@@ -1,10 +1,14 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.scrapper = void 0;
 const node_html_parser_1 = require("node-html-parser");
 const xhr_1 = require("../xhr");
 const consts_1 = require("./consts");
 const helpers_1 = require("./helpers");
+const api_error_middleware_1 = __importDefault(require("../../middlewares/api-error.middleware"));
 const defaultOptions = {
     headers: {
         'User-Agent': (0, helpers_1.randomUserAgent)()
@@ -20,13 +24,20 @@ class Scrapper {
         return this.getClearGigData(gigData);
     }
     async apiRequest(url) {
-        const { host } = new URL(url);
+        console.log('url:', url);
+        let host;
+        try {
+            const { host: parsedHost } = new URL(url);
+            host = parsedHost;
+        }
+        catch (e) {
+            throw api_error_middleware_1.default.defaultError("Invalid Url");
+        }
         if (host !== consts_1.FIVERR_HOST) {
-            /*
-                        return ApiError.defaultError(`\`Url must be from ${FIVERR_HOST} host\``)
-            */
+            throw api_error_middleware_1.default.defaultError(`Url must be from ${consts_1.FIVERR_HOST} host`);
         }
         const response = await xhr_1.xhr.get(url, defaultOptions);
+        console.log('r:', response.statusCode);
         // handle redirect
         if (response.headers.location && response.statusCode >= 300 && response.statusCode <= 399) {
             return this.apiRequest(response.headers.location);

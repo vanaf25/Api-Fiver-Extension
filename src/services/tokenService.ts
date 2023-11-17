@@ -17,9 +17,7 @@ export class TokenService {
         }
     }
     static async compareTokenWithDb(payload, token, field = "access_token") {
-        console.log(payload);
         const user = await UserModel.findOne({_id:payload.id});
-        console.log(await UserModel.find({}))
         if (!user) {
             throw ApiError.UnauthorizedError("TOKEN_NOT_VALID");
         }

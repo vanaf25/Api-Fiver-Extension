@@ -86,7 +86,6 @@ class Xhr {
                 response.setHeaders(res.headers)
                 response.setStatusCode(res.statusCode)
                 response.setResHttp(res)
-
                 res.on("data", (chunk) => {
                     buffData += chunk
                 })
@@ -95,11 +94,13 @@ class Xhr {
                     resolve(response)
                 })
                 res.on("error", (err) => {
+                    console.log('err:',err.toString());
                     response.setError(err.toString())
                     reject(response)
                 })
             })
             req.on("error", (err) => {
+                console.log('err:',err.toString());
                 response.setError(err.toString())
                 reject(response)
             })

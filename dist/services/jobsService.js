@@ -268,11 +268,11 @@ class JobsService {
             .populate("firstJob").populate("secondJob").populate("secondUser").exec();
         const job = await jobSchema_1.JobModel.findOne({ _id: jobId }).populate("author").exec();
         if (!job)
-            return api_error_middleware_1.default.NotFound("The job was not founded");
+            throw api_error_middleware_1.default.NotFound("The job was not founded");
         if (!exchange)
             throw api_error_middleware_1.default.NotFound("The exchange was not found");
         if (exchange.secondJob)
-            return api_error_middleware_1.default.defaultError("You can't apply for this exchange");
+            throw api_error_middleware_1.default.defaultError("You can't apply for this exchange");
         const currentJob = await this.applyForJob(jobId, userId, true);
         /*    await this.applyForJob(
                 exchange.firstJob._id,

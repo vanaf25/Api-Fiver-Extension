@@ -1,4 +1,4 @@
-import express from "express"
+import express, {NextFunction} from "express"
 import cors, {CorsOptions} from "cors"
 import authMiddleware from "./middlewares/auth.middleware";
 import {AuthController} from "./controllers/auth.controller";
@@ -8,6 +8,7 @@ import * as mongoose from "mongoose";
 import checkParameterMiddleware from "./middlewares/check-parametr.middleware";
 import {UserController} from "./controllers/user.controller";
 import * as dotenv from 'dotenv';
+import ApiError from "./middlewares/api-error.middleware";
 const app = express();
 const corsOptions:CorsOptions = {
     origin: "*",
