@@ -42,7 +42,7 @@ export class UserService {
             });
             //comment
             //@ts-ignore
-            histories=[...histories].filter(history=>history.job && history.job?.author._id!=userId);
+            histories=[...histories].filter(history=>history.job && history.user!=userId);
             return {data:histories,count:histories.length}
         }
         static async getMyJobs(userId:number,page:number){
