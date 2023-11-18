@@ -102,7 +102,7 @@ body.url
         console.log('steps:',steps);
         const currentJob:any = await CurrentJobModel.findOne({ _id: jobId }).populate('job')
             .exec();
-        console.log('currentJob:',currentJob)
+        console.log('currentJob:',currentJob);
         if (!currentJob) {
            return   ApiError.NotFound("Current job not found");
         }
@@ -119,6 +119,7 @@ body.url
         if (currentJob.job.favorite) {
             if (steps.favorite || requiredThings.clickedOnFavorite) requiredThings.clickedOnFavorite = true;
            else if (steps.favorite===false){
+                console.log('steps.favorite=false')
                 requiredThings.clickedOnFavorite=false
                 isCompleted = false;
             }
@@ -127,6 +128,7 @@ body.url
         if (currentJob.job.allPackages) {
             if (steps.allPackages || requiredThings.clickedOnAllPackages) requiredThings.clickedOnAllPackages = true;
          else   if (steps.allPackages===false){
+                console.log('steps.allPackages=false')
                 requiredThings.clickedOnAllPackages=false
                  isCompleted = false;
             }
@@ -135,21 +137,22 @@ body.url
         if (currentJob.job.clickProfileLink) {
             if (steps.clickProfileLink || requiredThings.clickedOnProfileLink) requiredThings.clickedOnProfileLink = true;
             else if (steps.clickProfileLink===false){
+                console.log('steps.clickProfile=false')
                 requiredThings.clickedOnProfileLink=false
                 isCompleted=false
             }
             else isCompleted = false;
         }
         if (currentJob.job.allImages) {
-            if (steps.allImages || steps.clickedOnAllImages) requiredThings.clickedOnAllImages = true;
+            if (steps.allImages || requiredThings.clickedOnAllImages) requiredThings.clickedOnAllImages = true;
             else if (steps.allImages===false){
+                console.log('steps.allImages=false')
                 requiredThings.clickedOnAllImages=false
                 isCompleted = false
             }
             else isCompleted = false;
         }
         let countOfCompleted=currentJob.countOfCompleted
-
         if (isCompleted) {
             countOfCompleted++
             const user:any= await UserModel.findOne({_id:userId});
