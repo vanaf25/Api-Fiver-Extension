@@ -11,9 +11,9 @@ export class UserService {
             const skip = (currentPage - 1) * PAGE_SIZE;
          const [histories, historyCount] = await Promise.all([
              HistoryModel.find({user:userId}).skip(skip).limit(PAGE_SIZE)
-                 .populate({path:"job",populate:{
+                 .populate({path:"job", populate:{
                          path: 'author',
-                         model:"User"
+                         model:"User",
                      }}).exec(),
              HistoryModel.countDocuments({user:userId}),
             ]);
@@ -41,7 +41,8 @@ export class UserService {
                 //@ts-ignore
                 console.log(h?.job?.author)
             });
-            histories=[...histories].filter(history=>history.job);
+            //@ts-ignore
+            histories=[...histories].filter(history=>history.job && history.job?.author._id!==userId);
             return {data:histories,count:histories.length}
         }
         static async getMyJobs(userId:number,page:number){
