@@ -41,6 +41,7 @@ export class UserService {
                 //@ts-ignore
                 console.log(h?.job?.author)
             });
+            //comment
             //@ts-ignore
             histories=[...histories].filter(history=>history.job && history.job?.author._id!==userId);
             return {data:histories,count:histories.length}

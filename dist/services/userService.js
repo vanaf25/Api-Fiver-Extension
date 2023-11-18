@@ -22,7 +22,7 @@ class UserService {
             jobSchema_1.HistoryModel.find({ user: userId }).skip(skip).limit(PAGE_SIZE)
                 .populate({ path: "job", populate: {
                     path: 'author',
-                    model: "User"
+                    model: "User",
                 } }).exec(),
             jobSchema_1.HistoryModel.countDocuments({ user: userId }),
         ]);
@@ -51,7 +51,9 @@ class UserService {
             //@ts-ignore
             console.log(h?.job?.author);
         });
-        histories = [...histories].filter(history => history.job);
+        //comment
+        //@ts-ignore
+        histories = [...histories].filter(history => history.job && history.job?.author._id !== userId);
         return { data: histories, count: histories.length };
     }
     static async getMyJobs(userId, page) {
