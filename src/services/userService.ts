@@ -36,14 +36,13 @@ export class UserService {
                         }}).exec(),
                 HistoryModel.countDocuments()
             ]);
-            console.log('h:',histories);
             histories.forEach(h=>{
                 //@ts-ignore
-                console.log(h?.job?.author)
+                console.log(h?.job?.author._id!=userId)
             });
             //comment
             //@ts-ignore
-            histories=[...histories].filter(history=>history.job && history.job?.author._id!==userId);
+            histories=[...histories].filter(history=>history.job && history.job?.author._id!=userId);
             return {data:histories,count:histories.length}
         }
         static async getMyJobs(userId:number,page:number){
