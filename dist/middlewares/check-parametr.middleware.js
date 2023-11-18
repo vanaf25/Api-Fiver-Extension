@@ -22,11 +22,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-const api_error_middleware_1 = __importDefault(require("./api-error.middleware"));
 const mongoose = __importStar(require("mongoose"));
 const defaultParams = { optional: false, isRefresh: false };
 function checkParameterMiddleware({ optional } = defaultParams) {
@@ -35,7 +31,13 @@ function checkParameterMiddleware({ optional } = defaultParams) {
             if (mongoose.Types.ObjectId.isValid(req.params?.id)) {
                 return next();
             }
-            return next(api_error_middleware_1.default.UnauthorizedError("Id is not valid"));
+            else {
+                res.status(401).send({
+                    error: {
+                        message: "Id isn't correct"
+                    }
+                });
+            }
         }
         catch (e) {
             return next(e);

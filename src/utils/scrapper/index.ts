@@ -22,6 +22,7 @@ class Scrapper {
     public async getGigData(url: string): Promise<ScrapperResponse | null> {
             const response = await this.apiRequest(url);
             const gigData = this.getGigDataFromHtml(parse(response.data));
+        console.log('gigData:',gigData);
             if (!gigData) {
                 return null
             }
@@ -71,6 +72,7 @@ class Scrapper {
     private getClearGigData(gigData: object): ScrapperResponse {
         console.log(gigData)
         const { gigId, categorySlug, subCategorySlug,nestedSubCategorySlug} = gigData[GIG_DATA_KEY] || {}
+        if (!gigId) throw ApiError.defaultError("The gig with provided url doesn't exist")
         const { username } = gigData[AUTHOR_GIG_KEY] || {}
         console.log(gigData[GIG_DATA_KEY]);
         let gigCategoryUrl=`https://www.fiverr.com/categories/${categorySlug}/`

@@ -24,9 +24,7 @@ class TokenService {
         }
     }
     static async compareTokenWithDb(payload, token, field = "access_token") {
-        console.log(payload);
         const user = await jobSchema_1.UserModel.findOne({ _id: payload.id });
-        console.log(await jobSchema_1.UserModel.find({}));
         if (!user) {
             throw api_error_middleware_1.default.UnauthorizedError("TOKEN_NOT_VALID");
         }

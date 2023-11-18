@@ -85,11 +85,13 @@ class Xhr {
                     resolve(response);
                 });
                 res.on("error", (err) => {
+                    console.log('err:', err.toString());
                     response.setError(err.toString());
                     reject(response);
                 });
             });
             req.on("error", (err) => {
+                console.log('err:', err.toString());
                 response.setError(err.toString());
                 reject(response);
             });

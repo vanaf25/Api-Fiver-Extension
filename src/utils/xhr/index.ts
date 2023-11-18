@@ -10,7 +10,6 @@ export class XhrResponse {
     public res: IncomingMessage;
     public isError: boolean = false;
     public errorMessage: string = null;
-
     public setData(data: string) {
         this.data = data
     }
