@@ -33,16 +33,20 @@ export class UserService {
                         populate:{
                             path: 'author',
                             model:"User",
-                        }}).exec(),
+                        }}).populate("user")
+                    .exec(),
                 HistoryModel.countDocuments()
             ]);
-            histories.forEach(h=>{
+          /*  histories.forEach(h=>{
                 //@ts-ignore
-                console.log(h?.job?.author._id!=userId)
-            });
+                console.log(h.user==userId);
+            });*/
             //comment
+            console.log('id:',userId)
             //@ts-ignore
-            histories=[...histories].filter(history=>history.job && history.user!=userId);
+            histories=[...histories].filter(history=>{
+                return history.job && history.user.id!=userId
+            });
             return {data:histories,count:histories.length}
         }
         static async getMyJobs(userId:number,page:number){

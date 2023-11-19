@@ -43,17 +43,20 @@ class UserService {
                     path: 'author',
                     model: "User",
                 }
-            }).exec(),
+            }).populate("user")
+                .exec(),
             jobSchema_1.HistoryModel.countDocuments()
         ]);
-        console.log('h:', histories);
-        histories.forEach(h => {
-            //@ts-ignore
-            console.log(h?.job?.author);
-        });
+        /*  histories.forEach(h=>{
+              //@ts-ignore
+              console.log(h.user==userId);
+          });*/
         //comment
+        console.log('id:', userId);
         //@ts-ignore
-        histories = [...histories].filter(history => history.job && history.job?.author._id !== userId);
+        histories = [...histories].filter(history => {
+            return history.job && history.user.id != userId;
+        });
         return { data: histories, count: histories.length };
     }
     static async getMyJobs(userId, page) {
