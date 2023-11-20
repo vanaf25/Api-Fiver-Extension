@@ -174,7 +174,7 @@ body.url
                 countOfCompleted
             )
         }
-          await CurrentJobModel.findOneAndUpdate(
+        await CurrentJobModel.findOneAndUpdate(
             { _id: jobId },
             { ...requiredThings, isComplete: isCompleted },
             { new: true })
