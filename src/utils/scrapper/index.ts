@@ -71,7 +71,7 @@ class Scrapper {
     }
     private getClearGigData(gigData: object): ScrapperResponse {
         console.log(gigData)
-        const { gigId, categorySlug, subCategorySlug,nestedSubCategorySlug} = gigData[GIG_DATA_KEY] || {}
+        const { gigId, categorySlug, subCategorySlug,nestedSubCategorySlug,subCategoryName} = gigData[GIG_DATA_KEY] || {}
         if (!gigId) throw ApiError.defaultError("The gig with provided url doesn't exist")
         const { username } = gigData[AUTHOR_GIG_KEY] || {}
         console.log(gigData[GIG_DATA_KEY]);
