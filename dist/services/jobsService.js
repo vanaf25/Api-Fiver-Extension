@@ -34,9 +34,10 @@ const scrapper_1 = require("../utils/scrapper");
 class JobsService {
     static async createJob(body, userId) {
         const response = await scrapper_1.scrapper.getGigData(body.url);
-        let url = new URL(body.url);
+        let url = new URL(response.url);
         url.search = "";
         const updatedUrl = url.toString();
+        console.log('updatedUrl:', updatedUrl);
         body = { ...body, integrity: undefined, category: response.gigCategory,
             gigId: response.gigId, subCategory: response.gigSubCategory,
             categoryUrl: response.gigCategoryUrl, gigAuthor: response.gigAuthor, url: updatedUrl };
