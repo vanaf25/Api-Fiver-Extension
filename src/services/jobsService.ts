@@ -5,12 +5,14 @@ import * as mongoose from "mongoose";
 import {scrapper} from "../utils/scrapper";
 export class JobsService {
     static async createJob(body, userId) {
+
      const response=  await scrapper.getGigData(
 body.url
      );
-        let url = new URL(body.url);
+        let url = new URL(response.url);
         url.search = "";
         const updatedUrl = url.toString();
+        console.log('updatedUrl:',updatedUrl);
         body = { ...body, integrity: undefined,category:response.gigCategory,
             gigId:response.gigId,subCategory:response.gigSubCategory,
             categoryUrl:response.gigCategoryUrl,gigAuthor:response.gigAuthor,url:updatedUrl};

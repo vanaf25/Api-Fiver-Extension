@@ -16,21 +16,21 @@ interface ScrapperResponse {
     gigSubCategory: string,
     gigAuthor: string,
     gigNestedSubCategory:string,
-    gigCategoryUrl:string
+    gigCategoryUrl:string,
+    url:string
 }
 class Scrapper {
     public async getGigData(url: string): Promise<ScrapperResponse | null> {
             const response = await this.apiRequest(url);
             const gigData = this.getGigDataFromHtml(parse(response.data));
-        console.log('gigData:',gigData);
             if (!gigData) {
                 return null
             }
-            return this.getClearGigData(gigData)
+            return this.getClearGigData(gigData,response.url);
     }
 
-    private async apiRequest(url): Promise<XhrResponse> {
-        console.log('url:',url);
+    private async apiRequest(url): Promise<any> {
+        console.log('url3444:',url);
         let host;
         try {
 
@@ -44,7 +44,6 @@ class Scrapper {
             throw ApiError.defaultError(`Url must be from ${FIVERR_HOST} host`)
         }
             const response = await xhr.get(url, defaultOptions)
-        console.log('r:',response.statusCode);
         // handle redirect
             if (response.headers.location && response.statusCode >= 300 && response.statusCode <= 399) {
                 return this.apiRequest(response.headers.location)
@@ -59,7 +58,7 @@ class Scrapper {
             if (!(response.statusCode >= 200 && response.statusCode <= 299)) {
                 throw new Error(`Response with status code ${response.statusCode}`)
             }
-            return response
+            return {...response,url}
 
     }
     private getGigDataFromHtml(html: HTMLElement) {
@@ -69,12 +68,10 @@ class Scrapper {
         }
         return JSON.parse(gigJson.innerHTML)
     }
-    private getClearGigData(gigData: object): ScrapperResponse {
-        console.log(gigData)
+    private getClearGigData(gigData: object,url:string): ScrapperResponse {
         const { gigId, categorySlug, subCategorySlug,nestedSubCategorySlug,subCategoryName} = gigData[GIG_DATA_KEY] || {}
         if (!gigId) throw ApiError.defaultError("The gig with provided url doesn't exist")
         const { username } = gigData[AUTHOR_GIG_KEY] || {}
-        console.log(gigData[GIG_DATA_KEY]);
         let gigCategoryUrl=`https://www.fiverr.com/categories/${categorySlug}/`
         if (subCategorySlug){
             gigCategoryUrl+=`${subCategorySlug}`
@@ -88,7 +85,8 @@ class Scrapper {
             gigSubCategory: subCategorySlug,
             gigAuthor: username,
             gigNestedSubCategory:nestedSubCategorySlug,
-            gigCategoryUrl:gigCategoryUrl
+            gigCategoryUrl:gigCategoryUrl,
+            url
         }
     }
 }
