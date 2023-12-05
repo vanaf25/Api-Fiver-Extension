@@ -7,10 +7,24 @@ exports.JobsController = void 0;
 const jobsService_1 = require("../services/jobsService");
 const api_error_middleware_1 = __importDefault(require("../middlewares/api-error.middleware"));
 class JobsController {
-    static async getJobs(req, res) {
-        const { page = 1 } = req.query;
-        const jobs = await jobsService_1.JobsService.getJobs(+page);
-        return res.json(jobs);
+    static async getJobs(req, res, next) {
+        try {
+            const { page = 1 } = req.query;
+            const userId = req.body.identity.id;
+            const jobs = await jobsService_1.JobsService.getJobs(+page, userId);
+            return res.json(jobs);
+        }
+        catch (error) {
+            if (error instanceof api_error_middleware_1.default) {
+                // Повертаємо відповідь клієнту з використанням властивостей з вашого класу ApiError
+                console.log('err:', error.statusCode);
+                res.status(error.statusCode).json({ error: { message: error.message } });
+            }
+            else {
+                // Інші неочікувані помилки обробляються власним способом
+                next(error);
+            }
+        }
     }
     static async postJobs(req, res, next) {
         try {
@@ -32,17 +46,37 @@ class JobsController {
             }
         }
     }
-    static async applyForJob(req, res) {
-        const id = req?.params?.id;
-        const userId = req.body.identity.id;
-        console.log(userId);
-        console.log(req.body);
-        const result = await jobsService_1.JobsService.applyForJob(id, userId);
-        /* const currentJob=await prisma.currentJob.findUnique({
-             where:{id:result.id},
-             include:{job:true}
-         });*/
-        res.json({ result });
+    static async deleteJob(req, res, next) {
+        try {
+            const id = req?.params?.id;
+            const userId = req.body.identity.id;
+            const result = await jobsService_1.JobsService.deleteJob(id, userId);
+            res.json(result);
+        }
+        catch (error) {
+            if (error instanceof api_error_middleware_1.default) {
+                res.status(error.statusCode).json({ error: { message: error.message } });
+            }
+            else {
+                next(error);
+            }
+        }
+    }
+    static async applyForJob(req, res, next) {
+        try {
+            const id = req?.params?.id;
+            const userId = req.body.identity.id;
+            const result = await jobsService_1.JobsService.applyForJob(id, userId);
+            res.json({ result });
+        }
+        catch (error) {
+            if (error instanceof api_error_middleware_1.default) {
+                res.status(error.statusCode).json({ error: { message: error.message } });
+            }
+            else {
+                next(error);
+            }
+        }
     }
     static async getCurrentJob(req, res) {
         const { id } = req.params;
@@ -83,12 +117,22 @@ class JobsController {
             }
         }
     }
-    static async applyForExchange(req, res) {
-        const userId = req.body?.identity?.id;
-        const exchangeId = req.params.id;
-        const jobId = req.body.jobId;
-        const result = await jobsService_1.JobsService.applyForExchange(exchangeId, jobId, userId);
-        return res.json(result);
+    static async applyForExchange(req, res, next) {
+        try {
+            const userId = req.body?.identity?.id;
+            const exchangeId = req.params.id;
+            const jobId = req.body.jobId;
+            const result = await jobsService_1.JobsService.applyForExchange(exchangeId, jobId, userId);
+            return res.json(result);
+        }
+        catch (error) {
+            if (error instanceof api_error_middleware_1.default) {
+                res.status(error.statusCode).json({ error: { message: error.message } });
+            }
+            else {
+                next(error);
+            }
+        }
     }
     static async getExchanges(req, res) {
         const userId = req.body?.identity?.id;
@@ -98,6 +142,22 @@ class JobsController {
     static async getCurrentJobByUrl(req, res) {
         const { id } = req.params;
         return await jobsService_1.JobsService.getCurrentJobByUrl(id);
+    }
+    static async apply(req, res, next) {
+        try {
+            console.log('apply!!!');
+            const userId = req.body.identity.id;
+            const result = await jobsService_1.JobsService.apply(userId);
+            return res.json(result);
+        }
+        catch (error) {
+            if (error instanceof api_error_middleware_1.default) {
+                res.status(error.statusCode).json({ error: { message: error.message } });
+            }
+            else {
+                next(error);
+            }
+        }
     }
 }
 exports.JobsController = JobsController;

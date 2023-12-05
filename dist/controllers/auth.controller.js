@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthController = void 0;
 const authService_1 = require("../services/authService");
+const userService_1 = require("../services/userService");
 class AuthController {
     static async registration(req, res) {
         console.log('22');
@@ -13,7 +14,7 @@ class AuthController {
     }
     static async getMe(req, res) {
         const userId = req.body.identity?.id;
-        const result = await authService_1.AuthService.getProfileData(userId);
+        const result = await userService_1.UserService.getProfileData(userId);
         console.log(result);
         return res.json(result);
     }

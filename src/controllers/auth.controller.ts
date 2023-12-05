@@ -1,5 +1,6 @@
 import {Request, Response} from "express";
 import {AuthService} from "../services/authService";
+import {UserService} from "../services/userService";
 export class AuthController{
      static async registration(req:Request,res:Response){
          console.log('22');
@@ -13,7 +14,7 @@ export class AuthController{
     }
     static async getMe(req:Request,res:Response){
          const userId=req.body.identity?.id
-        const result=await AuthService.getProfileData(userId)
+        const result=await UserService.getProfileData(userId)
         console.log(result);
          return res.json(result)
     }

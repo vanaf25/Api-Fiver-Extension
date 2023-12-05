@@ -65,7 +65,7 @@ class Xhr {
     }
 
     public request(url: string, method: Methods, options: RequestOptions = {}): Promise<XhrResponse> {
-        const { host, pathname } = new URL(url)
+        const { host, pathname } = new URL(url);
         const requestOptions: RequestOptions = {
             ...options,
             headers: {
@@ -76,7 +76,6 @@ class Xhr {
             host: host,
             path: pathname,
         }
-
         return new Promise((resolve, reject) => {
             const response = new XhrResponse();
 

@@ -23,32 +23,36 @@ class Scrapper {
         }
         return this.getClearGigData(gigData, response.url);
     }
-    async apiRequest(url) {
+    async apiRequest(url, defaultHost) {
         console.log('url3444:', url);
-        let host;
+        let host = defaultHost;
         try {
             const { host: parsedHost } = new URL(url);
-            host = parsedHost;
+            if (!defaultHost)
+                host = parsedHost;
         }
         catch (e) {
             throw api_error_middleware_1.default.defaultError("Invalid Url");
         }
+        console.log('host:', host);
+        console.log('FiverrHost:', consts_1.FIVERR_HOST);
         if (host !== consts_1.FIVERR_HOST) {
             throw api_error_middleware_1.default.defaultError(`Url must be from ${consts_1.FIVERR_HOST} host`);
         }
         const response = await xhr_1.xhr.get(url, defaultOptions);
         // handle redirect
         if (response.headers.location && response.statusCode >= 300 && response.statusCode <= 399) {
+            console.log('response.headers:', response.headers);
             return this.apiRequest(response.headers.location);
         }
         if (response.headers.contentType !== consts_1.HTML_CONTENT_TYPE) {
-            throw new Error(`Content-type must be ${consts_1.HTML_CONTENT_TYPE}`);
+            throw api_error_middleware_1.default.defaultError(`Content-type must be ${consts_1.HTML_CONTENT_TYPE}`);
         }
         if (response.isError) {
-            throw new Error(`Xhr: ${response.errorMessage}`);
+            throw api_error_middleware_1.default.defaultError(`Xhr: ${response.errorMessage}`);
         }
         if (!(response.statusCode >= 200 && response.statusCode <= 299)) {
-            throw new Error(`Response with status code ${response.statusCode}`);
+            throw api_error_middleware_1.default.NotFound(`The gig was not found`);
         }
         return { ...response, url };
     }

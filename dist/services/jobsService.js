@@ -31,8 +31,41 @@ const jobSchema_1 = require("../models/jobSchema"); // Import your Mongoose mode
 const api_error_middleware_1 = __importDefault(require("../middlewares/api-error.middleware"));
 const mongoose = __importStar(require("mongoose"));
 const scrapper_1 = require("../utils/scrapper");
+const urls = ["https://www.fiverr.com/s/6386aP", "https://www.fiverr.com/s/6386aP",
+    "https://www.fiverr.com/s/6386aP", "https://www.fiverr.com/s/6386aP", "https://www.fiverr.com/s/6386aP"];
+const filterJobs = (jobs, userId) => {
+    return [...jobs].filter(job => {
+        let isFounded = false;
+        if (!job.defaultJob) {
+            const currentJobsLength = job.currentJob.filter(job => !job.isExchange && !job.isComplete).length;
+            if (job.availableCredits <= currentJobsLength || job.availableCredits <= 0) {
+                isFounded = true;
+            }
+        }
+        job.currentJob.forEach((currentJob) => {
+            if (!currentJob.isExchange && currentJob.user == userId && currentJob.completedAt === new Date().toLocaleDateString()) {
+                isFounded = true;
+            }
+        });
+        return !isFounded;
+    });
+};
+const JOB_PRICE = 1;
 class JobsService {
-    static async createJob(body, userId) {
+    static async deleteJob(id, userId) {
+        const job = await jobSchema_1.JobModel.findOne({ _id: id }).populate("currentJob").exec();
+        if (!job)
+            throw api_error_middleware_1.default.NotFound("The job was not founded");
+        if (userId != job.author)
+            throw api_error_middleware_1.default.defaultError("You don't have access to delete this");
+        const lengthOfUncompletedCurrentJobs = job.currentJob.filter((c) => !c.isComplete && !c.isExchange).length;
+        const user = await jobSchema_1.UserModel.findOne({ _id: userId });
+        const count = job.currentJob.length - lengthOfUncompletedCurrentJobs;
+        await jobSchema_1.UserModel.findOneAndUpdate({ _id: userId }, { balanceForJobs: user.balanceForJobs + count });
+        await this.distributeCredits(userId, user.balanceForJobs + count);
+        return await jobSchema_1.JobModel.findOneAndUpdate({ _id: id }, { isDeleted: true });
+    }
+    static async createJob(body, userId, defaultJob) {
         const response = await scrapper_1.scrapper.getGigData(body.url);
         let url = new URL(response.url);
         url.search = "";
@@ -42,33 +75,65 @@ class JobsService {
             gigId: response.gigId, subCategory: response.gigSubCategory,
             categoryUrl: response.gigCategoryUrl, gigAuthor: response.gigAuthor, url: updatedUrl };
         try {
-            const author = await jobSchema_1.UserModel.findById(userId);
-            if (!author) {
-                throw api_error_middleware_1.default.UnauthorizedError("The author was not found");
+            let author;
+            if (!defaultJob) {
+                author = await jobSchema_1.UserModel.findById(userId);
+                if (!author) {
+                    throw api_error_middleware_1.default.UnauthorizedError("The author was not found");
+                }
             }
-            const newJob = new jobSchema_1.JobModel({
-                author: userId,
+            const job = await jobSchema_1.JobModel.create({
+                author: userId || undefined,
                 favorite: false,
                 allImages: false,
                 allPackages: false,
                 clickProfileLink: false,
                 ...body,
-                price: 100,
+                defaultJob,
+                price: 1,
             });
-            return newJob.save();
+            console.log('job', job);
+            if (author) {
+                await this.distributeCredits(userId, author.balanceForJobs);
+            }
+            return job;
         }
         catch (e) {
             return e;
         }
     }
-    static async getJobs(page) {
+    static async getJobs(page, userId) {
         const pageSize = 5;
         const skip = (page - 1) * pageSize;
-        const [jobs, jobCount] = await Promise.all([
-            jobSchema_1.JobModel.find({}).skip(skip).limit(pageSize).populate("currentJob").exec(),
-            jobSchema_1.JobModel.countDocuments({}),
+        let [jobs, jobCount] = await Promise.all([
+            jobSchema_1.JobModel.find({
+                $and: [{ author: { $ne: userId } }, { defaultJob: { $ne: true } }, { isDeleted: false }],
+            }).populate("currentJob").exec(),
+            jobSchema_1.JobModel.countDocuments({
+                $and: [{ author: { $ne: userId } }, { isDeleted: false }]
+            }),
         ]);
-        return { data: jobs, count: jobCount };
+        jobs = filterJobs(jobs, userId);
+        const jobsLength = jobs.length;
+        let defaultJobs = await jobSchema_1.JobModel.find({ defaultJob: true }).populate("currentJob").exec();
+        console.log('defaultJobs:', defaultJobs.length);
+        if (!defaultJobs.length) {
+            for (let url of urls) {
+                await JobsService.createJob({ allImages: true,
+                    clickProfileLink: true, allPackages: true, favorite: true, url }, 0, true);
+            }
+            const defaultJobs = await jobSchema_1.JobModel.find({ defaultJob: true }).populate("currentJob").exec();
+            return { data: defaultJobs, count: defaultJobs.length, availableJobs: defaultJobs.length };
+        }
+        defaultJobs = filterJobs(defaultJobs, userId);
+        if (jobsLength === 0) {
+            return { data: defaultJobs, count: defaultJobs.length, availableJobs: defaultJobs.length };
+        }
+        console.log('jobsLength:', jobsLength);
+        let availableJobs = jobsLength + defaultJobs.length;
+        console.log('availableJobs:', `${jobsLength}+${defaultJobs.length}=${jobsLength + defaultJobs.length}`);
+        jobs = [...jobs].slice(skip, skip + pageSize);
+        return { data: jobs, count: jobsLength, availableJobs };
     }
     static async getJobsByUserId(userId) {
         return await jobSchema_1.JobModel.find({ author: userId });
@@ -77,33 +142,37 @@ class JobsService {
         if (!mongoose.Types.ObjectId.isValid(jobId)) {
             return {};
             /*
-                      return   throw ApiError.defaultError("Invalid jobId");
+          return   throw ApiError.defaultError("Invalid jobId");
             */
         }
-        const job = await jobSchema_1.JobModel.findOne({ _id: jobId })
+        const job = await jobSchema_1.JobModel.findOne({ $and: [{ _id: jobId }, { isDeleted: { $ne: true } }
+            ] })
             .populate('currentJob')
             .exec();
+        console.log('job:', job);
+        if (!job)
+            throw api_error_middleware_1.default.NotFound("The job was not found");
+        if (job.availableCredits <= 0 && !isExchange && !job.defaultJob)
+            throw api_error_middleware_1.default.defaultError("This job don't have credits!");
+        const unCompletedJobs = job.currentJob.filter((job) => !job.isComplete && !job.isExchange);
+        if (!isExchange && unCompletedJobs.length >= job.availableCredits && !job.defaultJob)
+            throw api_error_middleware_1.default.defaultError("This job can't accept your apply!");
         job.currentJob.forEach((job) => {
-            if (job === userId)
-                return api_error_middleware_1.default.UnauthorizedError("Recently You applied for this job");
-        });
-        if (!job) {
-            throw api_error_middleware_1.default.NotFound("Job not found");
-        }
-        const currentJob = new jobSchema_1.CurrentJobModel({
-            job: jobId,
-            user: userId,
-            isExchange: isExchange || false
+            const currentDate = new Date().toLocaleDateString();
+            if (!isExchange && job.user === userId && currentDate === job.completedAt)
+                throw api_error_middleware_1.default.UnauthorizedError("Recently You applied for this job");
         });
         const c = await jobSchema_1.CurrentJobModel.create({
             job: jobId,
             user: userId,
-            isExchange: isExchange || false
+            isExchange: isExchange || false,
         });
-        const job2 = await jobSchema_1.JobModel.findOne({ _id: jobId });
+        const job2 = await jobSchema_1.JobModel.findOne({ $and: [{ _id: jobId }, { isDeleted: { $ne: true } }] });
         job2.currentJob.push(c._id);
         await job2.save();
-        return c;
+        const currentJob = await jobSchema_1.CurrentJobModel.findOne({ _id: c._id }).populate("job");
+        console.log('c::', currentJob);
+        return currentJob;
     }
     static async getCurrentJobs(userId, page) {
         const pageSize = 3;
@@ -120,9 +189,36 @@ class JobsService {
         ]);
         return { data: jobs, count: jobCount };
     }
+    static async distributeCredits(userId, availableCredits) {
+        console.log('availableCredits:', availableCredits);
+        const jobs = await jobSchema_1.JobModel.find({ author: userId });
+        console.log('jobsLength:', jobs.length);
+        const creditPerJob = Math.floor(availableCredits / jobs.length);
+        console.log('creditPerJob:', creditPerJob);
+        const leftCredits = availableCredits - (creditPerJob * jobs.length);
+        console.log('leftCredits:', leftCredits);
+        const credits = Array(jobs.length).fill(creditPerJob);
+        console.log('credits 1:', credits);
+        for (let i = 0; i < leftCredits; i++) {
+            credits[i] += 1;
+        }
+        console.log('credits 2:', credits);
+        for (let key in jobs) {
+            const job = jobs[key];
+            console.log('key:', key);
+            console.log('job:', job);
+            await jobSchema_1.JobModel.findOneAndUpdate({ _id: job._id }, { availableCredits: credits[key] });
+        }
+    }
     static async updateCurrentJob(jobId, userId, steps) {
         console.log('steps:', steps);
-        const currentJob = await jobSchema_1.CurrentJobModel.findOne({ _id: jobId }).populate('job')
+        const currentJob = await jobSchema_1.CurrentJobModel.findOne({ _id: jobId }).populate({
+            path: "job",
+            populate: {
+                path: "author",
+                model: "User"
+            }
+        })
             .exec();
         console.log('currentJob:', currentJob);
         if (!currentJob) {
@@ -183,7 +279,7 @@ class JobsService {
             else
                 isCompleted = false;
         }
-        let countOfCompleted = currentJob.countOfCompleted;
+        let countOfCompleted = currentJob.job.countOfCompleted;
         if (isCompleted) {
             countOfCompleted++;
             const user = await jobSchema_1.UserModel.findOne({ _id: userId });
@@ -192,16 +288,26 @@ class JobsService {
             if (!currentJob.isExchange) {
                 await jobSchema_1.UserModel.findOneAndUpdate({
                     _id: userId
-                }, { balance: currentJob.job.price + user.balance });
+                }, { balance: currentJob.job.price + user.balance,
+                    balanceForJobs: JOB_PRICE + user.balance });
+                await jobSchema_1.JobModel.findOneAndUpdate({ _id: currentJob.job._id }, { countOfCompleted, availableCredits: currentJob.job.availableCredits - JOB_PRICE });
+                if (currentJob.job.author) {
+                    jobSchema_1.UserModel.findOneAndUpdate({
+                        _id: currentJob.job.author._id,
+                    }, { balanceForJobs: currentJob.job.author.balanceForJobs - JOB_PRICE });
+                }
+                await this.distributeCredits(userId, JOB_PRICE + user.balanceForJobs);
+            }
+            else {
+                await jobSchema_1.JobModel.findOneAndUpdate({ _id: currentJob.job._id }, { countOfCompleted });
             }
             await jobSchema_1.HistoryModel.create({
                 user: userId,
                 job: currentJob.job.id,
                 price: currentJob.isExchange ? 0 : currentJob.job.price
             });
-            await jobSchema_1.JobModel.findOneAndUpdate({ _id: currentJob.job._id }, countOfCompleted);
         }
-        await jobSchema_1.CurrentJobModel.findOneAndUpdate({ _id: jobId }, { ...requiredThings, isComplete: isCompleted }, { new: true });
+        await jobSchema_1.CurrentJobModel.findOneAndUpdate({ _id: jobId }, { ...requiredThings, isComplete: isCompleted, completedAt: isCompleted ? new Date().toLocaleDateString() : "" }, { new: true });
         return await jobSchema_1.CurrentJobModel.findOne({ _id: jobId }).populate('job')
             .exec();
     }
@@ -212,7 +318,7 @@ class JobsService {
         await jobSchema_1.CurrentJobModel.deleteOne({ _id: jobId });
     }
     static async exchangeJobs(jobId, userId) {
-        const job = await jobSchema_1.JobModel.findOne({ _id: jobId });
+        const job = await jobSchema_1.JobModel.findOne({ $and: [{ _id: userId }, { isDeleted: false }] });
         if (!job)
             throw api_error_middleware_1.default.NotFound("The job was not founded");
         let exchanges = await jobSchema_1.ExchangeModel.find({
@@ -378,6 +484,13 @@ class JobsService {
         if (!currentJob)
             return api_error_middleware_1.default.NotFound("The job was not founded");
         return currentJob;
+    }
+    static async apply(userId) {
+        const { data } = await this.getJobs(1, userId);
+        if (data[0]) {
+            return await this.applyForJob(data[0]._id, userId);
+        }
+        throw api_error_middleware_1.default.defaultError("No job at the moment!");
     }
 }
 exports.JobsService = JobsService;

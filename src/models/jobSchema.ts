@@ -4,6 +4,7 @@ const userSchema = new mongoose.Schema({
     currentJobs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'currentJob' }],
     tokens: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Token' }],
     balance: { type: Number, default: 0 },
+    balanceForJobs:{type:Number,default:0},
     histories:[{type:mongoose.Schema.Types.ObjectId,ref:"History"}],
     exchanges:[{type:mongoose.Schema.Types.ObjectId,ref:"Exchange"}],
     ip:{type:String,required:true,default:""}
@@ -27,12 +28,15 @@ const jobSchema = new mongoose.Schema({
     subCategory:{type:String,required:false,default:""},
     gigAuthor:{type:String,required:true,default:""},
     categoryUrl:{type:String,required:false,default:""},
-    author: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    author: { type: mongoose.Schema.Types.ObjectId, ref: 'User'},
     price: { type: Number },
+    defaultJob:{type:Boolean,default:false},
     currentJob: [{ type: mongoose.Schema.Types.ObjectId, ref: 'currentJob' }],
     histories:[{type:mongoose.Schema.Types.ObjectId,ref:"History"}],
     exchanges:[{type:mongoose.Schema.Types.ObjectId,ref:"Exchange"}],
     countOfCompleted:{type:Number,default:0},
+    availableCredits:{type:Number,default:0},
+    isDeleted:{type:Boolean,default:false}
 },{versionKey:false});
 const currentJobSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
@@ -43,7 +47,8 @@ const currentJobSchema = new mongoose.Schema({
     clickedOnAllImages: { type: Boolean, default: false },
     isComplete: { type: Boolean, default: false },
     job: { type: mongoose.Schema.Types.ObjectId, ref: 'Job' },
-    isExchange:{type:Boolean,default:false}
+    isExchange:{type:Boolean,default:false},
+    completedAt:{type:String,default:""}
 },{versionKey:false});
 const historySchema=new mongoose.Schema({
     user:{type:mongoose.Schema.Types.ObjectId,ref:"User"},

@@ -51,6 +51,7 @@ mongoose.connect(process.env.MONGODB_URI);
 app.post("/login", auth_controller_1.AuthController.registration);
 app.get("/jobs", (0, auth_middleware_1.default)(), jobs_controller_1.JobsController.getJobs);
 app.post("/jobs", (0, auth_middleware_1.default)(), jobs_controller_1.JobsController.postJobs);
+app.post("/apply", (0, auth_middleware_1.default)(), jobs_controller_1.JobsController.apply);
 app.get("/currentJobs/getByUrl/:id", (0, auth_middleware_1.default)(), jobs_controller_1.JobsController.getCurrentJobByUrl);
 app.get("/currentJobs/:id", (0, check_parametr_middleware_1.default)(), (0, auth_middleware_1.default)(), jobs_controller_1.JobsController.getCurrentJob);
 app.post("/applyForJob/:id", (0, check_parametr_middleware_1.default)(), (0, auth_middleware_1.default)(), jobs_controller_1.JobsController.applyForJob);
@@ -63,6 +64,7 @@ app.get("/exchanges", (0, auth_middleware_1.default)(), jobs_controller_1.JobsCo
 app.post("/applyExchanges/:id", (0, check_parametr_middleware_1.default)(), (0, auth_middleware_1.default)(), jobs_controller_1.JobsController.applyForExchange);
 app.get('/myJobs', (0, auth_middleware_1.default)(), user_controller_1.UserController.getMyJobs);
 app.get("/myHistory", (0, auth_middleware_1.default)(), user_controller_1.UserController.getMyHistory);
+app.delete("/jobs/:id", (0, auth_middleware_1.default)(), jobs_controller_1.JobsController.deleteJob);
 app.listen(5000, () => {
     console.log("Hello server start!");
 });

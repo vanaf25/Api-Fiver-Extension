@@ -1,19 +1,12 @@
 import {TokenService} from "./tokenService";
-import { UserModel } from '../models/jobSchema';
+import {JobModel, UserModel} from '../models/jobSchema';
 import * as mongoose from "mongoose";
 import ApiError from "../middlewares/api-error.middleware";
+import {JobsService} from "./jobsService";
+
 export class AuthService {
     static async register(ip:string) {
         try {
-            //@ts-ignore
-            const customId=new mongoose.Types.ObjectId()
-            const newUser = new UserModel({
-                _id: customId,
-                myJobs: [],
-                currentJobs: [],
-                tokens: [],
-                balance: 0,
-            });
             const user=await UserModel.create({
                 ip
             });
@@ -27,5 +20,6 @@ export class AuthService {
     static async getProfileData(userId){
         const user=await UserModel.findOne({_id:userId});
         if (!user) throw ApiError.NotFound("The user was not founded");
+
         return user     }
 }

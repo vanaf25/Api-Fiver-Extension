@@ -1,10 +1,15 @@
 import {HistoryModel, JobModel, UserModel} from '../models/jobSchema';
 import ApiError from "../middlewares/api-error.middleware";
+import {JobsService} from "./jobsService";
 export class UserService {
     static async getProfileData(userId){
-        const user=await UserModel.findOne({_id:userId}).populate("history").exec();
+        const user=await UserModel.findOne({_id:userId});
         if (!user) throw ApiError.NotFound("The user was not founded");
-        return user     }
+        const {count}=await this.getMyHistory(userId,1,10)
+        const {availableJobs:availableExchanges}=await JobsService.getJobs(1,userId)
+        const returnedUser=JSON.parse(JSON.stringify(user))
+        return {...returnedUser,exchangesMade:count,availableExchanges}
+    }
         static async getUserHistory(userId,currentPage,pageSize=10){
         if (currentPage<1)currentPage=1
         const PAGE_SIZE=pageSize;
@@ -25,37 +30,48 @@ export class UserService {
             const skip = (currentPage - 1) * PAGE_SIZE;
             console.log('u:',userId);
             let [histories, historyCount] = await Promise.all([
-                HistoryModel.find({
+                HistoryModel.
+                find({
+
                 })
                     .populate({
+
                         path:"job",
                         match:{author:userId},
+                        options: { limit: 1 },
                         populate:{
                             path: 'author',
                             model:"User",
-                        }}).populate("user")
-                    .exec(),
-                HistoryModel.countDocuments()
+                        }}).populate("user").exec(),
+                HistoryModel.countDocuments({
+                    'job':{ $exists: true, $ne: null },
+                })
             ]);
-          /*  histories.forEach(h=>{
-                //@ts-ignore
-                console.log(h.user==userId);
-            });*/
             //comment
             console.log('id:',userId)
             //@ts-ignore
-            histories=[...histories].filter(history=>{
+            histories=[...histories].filter((history,index)=>{
+                // Slice the array to get the elements for the current page
                 return history.job && history.user.id!=userId
             });
-            return {data:histories,count:histories.length}
+            const historiesLength=histories.length
+
+            //@ts-ignore
+            histories =[...histories].slice(skip, skip + pageSize);
+            return {data:histories,count:historiesLength}
         }
         static async getMyJobs(userId:number,page:number){
         const PAGE_SIZE=5;
             const skip = (page - 1) * PAGE_SIZE;
             const user=await UserModel.findOne({_id:userId}).populate("histories").exec();
             const [data, count] = await Promise.all([
-                JobModel.find({author: userId}).skip(skip).limit(PAGE_SIZE),
-                JobModel.countDocuments({author:userId}),
+                JobModel.find({
+                        $and:[{ author:userId},{isDeleted:false}]
+                })
+                    .skip(skip).limit(PAGE_SIZE),
+                JobModel.countDocuments({
+                    $and:[{ author:userId},{isDeleted:false}]
+                }),
             ]);
                 return {data,count}
         }
