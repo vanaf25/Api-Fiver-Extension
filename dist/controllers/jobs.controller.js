@@ -93,7 +93,6 @@ class JobsController {
         const userId = req.body?.identity?.id;
         const jobId = req.params.id;
         const body = req.body;
-        console.log('body:', req.body);
         const result = await jobsService_1.JobsService.updateCurrentJob(jobId, userId, body);
         return res.json(result);
     }

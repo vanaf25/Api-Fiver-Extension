@@ -88,7 +88,6 @@ body.url
         jobs=filterJobs(jobs,userId)
         const jobsLength=jobs.length;
             let defaultJobs=await JobModel.find({defaultJob:true}).populate("currentJob").exec()
-        console.log('defaultJobs:',defaultJobs.length);
             if (!defaultJobs.length){
                 for (let url of urls){
                     await JobsService.createJob({allImages:true,
@@ -101,9 +100,7 @@ body.url
             if (jobsLength===0){
                 return  {data:defaultJobs,count:defaultJobs.length,availableJobs:defaultJobs.length}
             }
-        console.log('jobsLength:',jobsLength);
             let availableJobs=jobsLength+defaultJobs.length
-        console.log('availableJobs:',`${jobsLength}+${defaultJobs.length}=${jobsLength+defaultJobs.length}`);
         jobs =[...jobs].slice(skip, skip + pageSize);
         return { data: jobs, count: jobsLength,availableJobs };
     }
@@ -123,7 +120,6 @@ body.url
             )
             .populate('currentJob')
             .exec();
-        console.log('job:',job)
         if (!job) throw ApiError.NotFound("The job was not found");
         if (job.availableCredits<=0 && !isExchange && !job.defaultJob) throw ApiError.defaultError("This job don't have credits!");
         const unCompletedJobs=job.currentJob.filter((job:any)=>!job.isComplete && !job.isExchange)
@@ -141,7 +137,6 @@ body.url
         job2.currentJob.push(c._id);
       await  job2.save();
         const currentJob=await CurrentJobModel.findOne({_id:c._id}).populate("job");
-        console.log('c::',currentJob);
       return currentJob
     }
     static async getCurrentJobs(userId, page) {
@@ -185,7 +180,6 @@ body.url
         }
     }
     static async updateCurrentJob(jobId, userId, steps:any) {
-        console.log('steps:',steps);
         const currentJob:any = await CurrentJobModel.findOne({ _id: jobId }).populate({
             path:"job",
             populate:{
@@ -194,7 +188,6 @@ body.url
             }
         })
             .exec();
-        console.log('currentJob:',currentJob);
         if (!currentJob) {
            return   ApiError.NotFound("Current job not found");
         }
@@ -206,21 +199,17 @@ body.url
             clickedOnFavorite:currentJob.clickedOnFavorite,
             clickedOnProfileLink:currentJob.clickedOnProfileLink
         };
-        console.log('requiredThings:',requiredThings);
-        console.log('steps.favorite:',steps.favorite,steps.favorite===false);
         if (currentJob.job.favorite) {
             if (steps.favorite || requiredThings.clickedOnFavorite) requiredThings.clickedOnFavorite = true;
-           else if (steps.favorite===false){
-                console.log('steps.favorite=false')
+            else if (steps.favorite===false){
                 requiredThings.clickedOnFavorite=false
-                isCompleted = false;
+                isCompleted=false
             }
             else isCompleted = false;
         }
         if (currentJob.job.allPackages) {
             if (steps.allPackages || requiredThings.clickedOnAllPackages) requiredThings.clickedOnAllPackages = true;
          else   if (steps.allPackages===false){
-                console.log('steps.allPackages=false')
                 requiredThings.clickedOnAllPackages=false
                  isCompleted = false;
             }
@@ -229,7 +218,6 @@ body.url
         if (currentJob.job.clickProfileLink) {
             if (steps.clickProfileLink || requiredThings.clickedOnProfileLink) requiredThings.clickedOnProfileLink = true;
             else if (steps.clickProfileLink===false){
-                console.log('steps.clickProfile=false')
                 requiredThings.clickedOnProfileLink=false
                 isCompleted=false
             }
@@ -238,7 +226,6 @@ body.url
         if (currentJob.job.allImages) {
             if (steps.allImages || requiredThings.clickedOnAllImages) requiredThings.clickedOnAllImages = true;
             else if (steps.allImages===false){
-                console.log('steps.allImages=false')
                 requiredThings.clickedOnAllImages=false
                 isCompleted = false
             }
@@ -253,18 +240,20 @@ body.url
                 await UserModel.findOneAndUpdate({
                         _id:userId
                     },
-                    {  balance:currentJob.job.price+user.balance,
+                    {  balance:JOB_PRICE+user.balance,
                         balanceForJobs:JOB_PRICE+user.balance }
                 )
                 await JobModel.findOneAndUpdate(
                     {_id:currentJob.job._id},
                     {countOfCompleted,availableCredits:currentJob.job.availableCredits-JOB_PRICE}
                 );
+                console.log('cec:',currentJob.job.author);
                 if (currentJob.job.author){
-                    UserModel.findOneAndUpdate({
+                   await UserModel.findOneAndUpdate({
                             _id:currentJob.job.author._id,
                         },
-                        {balanceForJobs:currentJob.job.author.balanceForJobs-JOB_PRICE}
+                        {balanceForJobs:currentJob.job.author.balanceForJobs-JOB_PRICE,
+                            balance:currentJob.job.author.balance-JOB_PRICE}
                     )
                 }
                 await this.distributeCredits(userId,JOB_PRICE+user.balanceForJobs)
@@ -294,7 +283,10 @@ body.url
       await  CurrentJobModel.deleteOne({_id:jobId});
     }
     static async exchangeJobs(jobId,userId) {
-        const job = await JobModel.findOne({$and:[{ _id:userId},{isDeleted:false}]});
+        const job = await JobModel.findOne(
+            {$and:[{_id:jobId},{isDeleted:{$ne:true}}
+                ]}
+        )
         if (!job) throw  ApiError.NotFound("The job was not founded");
         let exchanges=await ExchangeModel.find({
             secondUser:userId,

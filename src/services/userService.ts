@@ -5,10 +5,10 @@ export class UserService {
     static async getProfileData(userId){
         const user=await UserModel.findOne({_id:userId});
         if (!user) throw ApiError.NotFound("The user was not founded");
-        const {count}=await this.getMyHistory(userId,1,10)
+        const {creditSpentCount,data}=await this.getMyHistory(userId,1,10,true);
         const {availableJobs:availableExchanges}=await JobsService.getJobs(1,userId)
         const returnedUser=JSON.parse(JSON.stringify(user))
-        return {...returnedUser,exchangesMade:count,availableExchanges}
+        return {...returnedUser,exchangesMade:creditSpentCount,availableExchanges}
     }
         static async getUserHistory(userId,currentPage,pageSize=10){
         if (currentPage<1)currentPage=1
@@ -24,7 +24,7 @@ export class UserService {
             ]);
          return {data:histories,count:historyCount}
         }
-        static async getMyHistory(userId,currentPage,pageSize=10){
+        static async getMyHistory(userId,currentPage,pageSize=10,creditSpent?:boolean){
             if (currentPage<1)currentPage=1
             const PAGE_SIZE=pageSize;
             const skip = (currentPage - 1) * PAGE_SIZE;
@@ -54,11 +54,12 @@ export class UserService {
                 // Slice the array to get the elements for the current page
                 return history.job && history.user.id!=userId
             });
+            const creditSpentCount=[...histories].filter(h=>h.price!==0).length
             const historiesLength=histories.length
 
             //@ts-ignore
             histories =[...histories].slice(skip, skip + pageSize);
-            return {data:histories,count:historiesLength}
+            return {data:histories,count:historiesLength,creditSpentCount}
         }
         static async getMyJobs(userId:number,page:number){
         const PAGE_SIZE=5;

@@ -12,10 +12,10 @@ class UserService {
         const user = await jobSchema_1.UserModel.findOne({ _id: userId });
         if (!user)
             throw api_error_middleware_1.default.NotFound("The user was not founded");
-        const { count } = await this.getMyHistory(userId, 1, 10);
+        const { creditSpentCount, data } = await this.getMyHistory(userId, 1, 10, true);
         const { availableJobs: availableExchanges } = await jobsService_1.JobsService.getJobs(1, userId);
         const returnedUser = JSON.parse(JSON.stringify(user));
-        return { ...returnedUser, exchangesMade: count, availableExchanges };
+        return { ...returnedUser, exchangesMade: creditSpentCount, availableExchanges };
     }
     static async getUserHistory(userId, currentPage, pageSize = 10) {
         if (currentPage < 1)
@@ -32,7 +32,7 @@ class UserService {
         ]);
         return { data: histories, count: historyCount };
     }
-    static async getMyHistory(userId, currentPage, pageSize = 10) {
+    static async getMyHistory(userId, currentPage, pageSize = 10, creditSpent) {
         if (currentPage < 1)
             currentPage = 1;
         const PAGE_SIZE = pageSize;
@@ -61,10 +61,11 @@ class UserService {
             // Slice the array to get the elements for the current page
             return history.job && history.user.id != userId;
         });
+        const creditSpentCount = [...histories].filter(h => h.price !== 0).length;
         const historiesLength = histories.length;
         //@ts-ignore
         histories = [...histories].slice(skip, skip + pageSize);
-        return { data: histories, count: historiesLength };
+        return { data: histories, count: historiesLength, creditSpentCount };
     }
     static async getMyJobs(userId, page) {
         const PAGE_SIZE = 5;
