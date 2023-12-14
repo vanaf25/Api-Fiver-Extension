@@ -8,6 +8,7 @@ export class UserService {
         const {creditSpentCount,data}=await this.getMyHistory(userId,1,10,true);
         const {availableJobs:availableExchanges}=await JobsService.getJobs(1,userId)
         const returnedUser=JSON.parse(JSON.stringify(user))
+        console.log('1')
         return {...returnedUser,exchangesMade:creditSpentCount,availableExchanges}
     }
         static async getUserHistory(userId,currentPage,pageSize=10){
