@@ -70,17 +70,21 @@ class Xhr {
             host: host,
             path: pathname,
         };
+        console.log("URL", url);
         return new Promise((resolve, reject) => {
             const response = new XhrResponse();
             let buffData = "";
             const req = https_1.default.request(requestOptions, (res) => {
+                // console.log('res:',res);
                 response.setHeaders(res.headers);
                 response.setStatusCode(res.statusCode);
                 response.setResHttp(res);
                 res.on("data", (chunk) => {
+                    console.log('chunk:', chunk);
                     buffData += chunk;
                 });
                 res.on("end", () => {
+                    // console.log('end:',buildffData);
                     response.setData(buffData);
                     resolve(response);
                 });

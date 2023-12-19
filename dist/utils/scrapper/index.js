@@ -9,9 +9,10 @@ const xhr_1 = require("../xhr");
 const consts_1 = require("./consts");
 const helpers_1 = require("./helpers");
 const api_error_middleware_1 = __importDefault(require("../../middlewares/api-error.middleware"));
+const axios_1 = __importDefault(require("axios"));
 const defaultOptions = {
     headers: {
-        'User-Agent': (0, helpers_1.randomUserAgent)()
+        'User-Agent': "PostmanRuntime/7.36.0"
     }
 };
 class Scrapper {
@@ -24,7 +25,7 @@ class Scrapper {
         return this.getClearGigData(gigData, response.url);
     }
     async apiRequest(url, defaultHost) {
-        console.log('url3444:', url);
+        console.log('URL:', url);
         let host = defaultHost;
         try {
             const { host: parsedHost } = new URL(url);
@@ -36,6 +37,14 @@ class Scrapper {
         }
         console.log('host:', host);
         console.log('FiverrHost:', consts_1.FIVERR_HOST);
+        try {
+            const response = await axios_1.default.head(url, { maxRedirects: 0, headers: { "User-Agent": (0, helpers_1.randomUserAgent)() } });
+            console.log('location:', response.headers?.location);
+        }
+        catch (error) {
+            console.error('Error with location:', error.message);
+            // Handle error, e.g., short link is not valid
+        }
         if (host !== consts_1.FIVERR_HOST) {
             throw api_error_middleware_1.default.defaultError(`Url must be from ${consts_1.FIVERR_HOST} host`);
         }
