@@ -2,7 +2,7 @@ import {UserModel, JobModel, CurrentJobModel, HistoryModel, ExchangeModel} from 
 import ApiError from "../middlewares/api-error.middleware";
 import { StepInterface } from "../interfaces/jobs.interfaces";
 import * as mongoose from "mongoose";
-import {scrapper} from "../utils/scrapper";
+import { scrapper } from "../utils/scrapper";
 const urls=["https://www.fiverr.com/s/6386aP","https://www.fiverr.com/s/6386aP",
     "https://www.fiverr.com/s/6386aP","https://www.fiverr.com/s/6386aP","https://www.fiverr.com/s/6386aP"];
 const filterJobs=(jobs,userId)=>{

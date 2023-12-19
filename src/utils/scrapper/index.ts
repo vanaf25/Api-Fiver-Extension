@@ -1,11 +1,13 @@
 import {HTMLElement, parse} from "node-html-parser";
 import {xhr, XhrResponse} from "../xhr";
 import {AUTHOR_GIG_KEY, FIVERR_HOST, GIG_DATA_KEY, GIG_SCRIPT_ID_SELECTOR, HTML_CONTENT_TYPE} from "./consts";
-import {randomUserAgent} from "./helpers";
+import { randomUserAgent } from "./helpers";
 import ApiError from "../../middlewares/api-error.middleware";
+import axios from 'axios';
+
 const defaultOptions = {
     headers: {
-        'User-Agent': randomUserAgent()
+        'User-Agent': "PostmanRuntime/7.36.0"
     }
 }
 
@@ -18,6 +20,7 @@ interface ScrapperResponse {
     gigCategoryUrl:string,
     url:string
 }
+
 class Scrapper {
     public async getGigData(url: string): Promise<ScrapperResponse | null> {
             const response = await this.apiRequest(url);
@@ -27,9 +30,8 @@ class Scrapper {
             }
             return this.getClearGigData(gigData,response.url);
     }
-
     private async apiRequest(url,defaultHost?): Promise<any> {
-        console.log('url3444:',url);
+        console.log('URL:',url);
         let host=defaultHost;
         try {
 
@@ -41,6 +43,13 @@ class Scrapper {
         }
         console.log('host:',host)
         console.log('FiverrHost:',FIVERR_HOST);
+        try {
+            const response = await axios.head(url, { maxRedirects: 0,headers:{"User-Agent":randomUserAgent()} });
+            console.log('location:',response.headers?.location)
+        } catch (error) {
+            console.error('Error with location:', error.message);
+            // Handle error, e.g., short link is not valid
+        }
         if (host !== FIVERR_HOST) {
             throw ApiError.defaultError(`Url must be from ${FIVERR_HOST} host`)
         }
