@@ -7,6 +7,7 @@ export class AuthController{
          const ip=req.headers['x-forwarded-for'] ||
              req.socket.remoteAddress ||
              null
+         console.log('ip:',ip);
         const result=await AuthService.register(ip || "" as any);
          res.cookie("token2", result.token,
              {domain: "localhost", sameSite: "none", secure: true,maxAge:3600*24*3650})
