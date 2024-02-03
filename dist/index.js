@@ -36,6 +36,7 @@ const mongoose = __importStar(require("mongoose"));
 const check_parametr_middleware_1 = __importDefault(require("./middlewares/check-parametr.middleware"));
 const user_controller_1 = require("./controllers/user.controller");
 const dotenv = __importStar(require("dotenv"));
+const open_controller_1 = require("./controllers/open.controller");
 const app = (0, express_1.default)();
 const corsOptions = {
     origin: "*",
@@ -51,6 +52,8 @@ mongoose.connect(process.env.MONGODB_URI);
 app.post("/login", auth_controller_1.AuthController.registration);
 app.get("/jobs", (0, auth_middleware_1.default)(), jobs_controller_1.JobsController.getJobs);
 app.post("/jobs", (0, auth_middleware_1.default)(), jobs_controller_1.JobsController.postJobs);
+app.post("/open", (0, auth_middleware_1.default)(), open_controller_1.OpenController.create);
+app.get('/open/:date', (0, auth_middleware_1.default)(), open_controller_1.OpenController.getNotification);
 app.post("/apply", (0, auth_middleware_1.default)(), jobs_controller_1.JobsController.apply);
 app.get("/currentJobs/getByUrl/:id", (0, auth_middleware_1.default)(), jobs_controller_1.JobsController.getCurrentJobByUrl);
 app.get("/currentJobs/:id", (0, check_parametr_middleware_1.default)(), (0, auth_middleware_1.default)(), jobs_controller_1.JobsController.getCurrentJob);

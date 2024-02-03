@@ -62,7 +62,13 @@ const exchangeSchema=new mongoose.Schema({
     firstJob:{type:mongoose.Schema.Types.ObjectId,ref:"Job"},
     secondJob:{type:mongoose.Schema.Types.ObjectId,ref:"Job"},
 },{versionKey:false});
+const notificationSchema=new mongoose.Schema({
+    ip:{type:String},
+    extensionId:{type:String},
+    parameter:{type:String}
+});
 export const UserModel = mongoose.model('User', userSchema);
+export const NotificationModel=mongoose.model("notification",notificationSchema);
 export const TokenModel = mongoose.model('Token', tokenSchema);
  export const JobModel = mongoose.model('Job', jobSchema);
 export const CurrentJobModel = mongoose.model('currentJob', currentJobSchema);

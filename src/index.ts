@@ -9,6 +9,7 @@ import checkParameterMiddleware from "./middlewares/check-parametr.middleware";
 import {UserController} from "./controllers/user.controller";
 import * as dotenv from 'dotenv';
 import ApiError from "./middlewares/api-error.middleware";
+import {OpenController} from "./controllers/open.controller";
 const app = express();
 const corsOptions:CorsOptions = {
     origin: "*",
@@ -24,6 +25,8 @@ mongoose.connect(process.env.MONGODB_URI);
 app.post("/login",AuthController.registration);
 app.get("/jobs",authMiddleware(),JobsController.getJobs);
 app.post("/jobs",authMiddleware(),JobsController.postJobs);
+app.post("/open",authMiddleware(),OpenController.create)
+app.get('/open/:date',authMiddleware(),OpenController.getNotification)
 app.post("/apply",authMiddleware(),JobsController.apply);
 app.get("/currentJobs/getByUrl/:id",authMiddleware(),JobsController.getCurrentJobByUrl);
 app.get("/currentJobs/:id",checkParameterMiddleware(),authMiddleware(),JobsController.getCurrentJob);
