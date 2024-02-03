@@ -73,3 +73,4 @@ exports.JobModel = mongoose_1.default.model('Job', jobSchema);
 exports.CurrentJobModel = mongoose_1.default.model('currentJob', currentJobSchema);
 exports.HistoryModel = mongoose_1.default.model("History", historySchema);
 exports.ExchangeModel = mongoose_1.default.model("Exchange", exchangeSchema);
+console.log('some logs');
