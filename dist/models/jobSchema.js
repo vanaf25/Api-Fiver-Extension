@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ExchangeModel = exports.HistoryModel = exports.CurrentJobModel = exports.JobModel = exports.TokenModel = exports.NotificationModel = exports.UserModel = void 0;
+exports.ExchangeModel = exports.HistoryModel = exports.CurrentJobModel = exports.JobModel = exports.TokenModel = exports.UserModel = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const userSchema = new mongoose_1.default.Schema({
     myJobs: [{ type: mongoose_1.default.Schema.Types.ObjectId, ref: 'Job' }],
@@ -67,13 +67,7 @@ const exchangeSchema = new mongoose_1.default.Schema({
     firstJob: { type: mongoose_1.default.Schema.Types.ObjectId, ref: "Job" },
     secondJob: { type: mongoose_1.default.Schema.Types.ObjectId, ref: "Job" },
 }, { versionKey: false });
-const notificationSchema = new mongoose_1.default.Schema({
-    ip: { type: String },
-    extensionId: { type: String },
-    parameter: { type: String }
-});
 exports.UserModel = mongoose_1.default.model('User', userSchema);
-exports.NotificationModel = mongoose_1.default.model("notification", notificationSchema);
 exports.TokenModel = mongoose_1.default.model('Token', tokenSchema);
 exports.JobModel = mongoose_1.default.model('Job', jobSchema);
 exports.CurrentJobModel = mongoose_1.default.model('currentJob', currentJobSchema);
